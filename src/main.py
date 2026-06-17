@@ -26,7 +26,6 @@ def format_size(size_bytes):
         size_bytes /= 1024
     return f"{size_bytes:.1f} ТБ"
 
-
 def print_file_list(files):
     for f in files:
         size = format_size(f["size"])
@@ -55,8 +54,37 @@ def find_duplicates(files):
     if not found:
         print("Дубликаты не найдены.")
 
+def check_backup(original, backup):
+    original_files = {}
+    for f in scan_directory(original):
+        relative_path = f["path"][len(original):]
+        original_files[relative_path] = f["size"]
+
+    backup_files = {}
+    for f in scan_directory(backup):
+        relative_path = f["path"][len(backup):]
+        backup_files[relative_path] = f["size"]
+
+    print("\n Сравнение с бэкапом \n")
+    for name in original_files:
+        if name not in backup_files:
+            print(f"Отсутствует в бэкапе:  {name}")
+        elif original_files[name] != backup_files[name]:
+            print(f"Изменён:               {name}")
+    for name in backup_files:
+        if name not in original_files:
+            print(f"Лишний в бэкапе:       {name}")
+    print("\nСравнение завершено.")
+
 def main():
-    if len(sys.argv) > 1:
+    if len(sys.argv) == 3:
+        original, backup = sys.argv[1], sys.argv[2]
+        print(f"Сканирование: {original}\n")
+        files = scan_directory(original)
+        print_file_list(files)
+        find_duplicates(files)
+        check_backup(original, backup)
+    elif len(sys.argv) == 2:
         path = sys.argv[1]
         print(f"Сканирование: {path}\n")
         files = scan_directory(path)
