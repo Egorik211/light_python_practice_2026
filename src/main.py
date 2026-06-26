@@ -7,7 +7,6 @@ from scanner import scan_directory, print_file_list
 from duplicates import find_duplicates
 from backup import check_backup
 
-
 def main():
     args = sys.argv[1:]
 

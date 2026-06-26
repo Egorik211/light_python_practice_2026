@@ -1,4 +1,6 @@
 from scanner import scan_directory
+from src.duplicates import get_file_hash
+
 
 def check_backup(original, backup, extension=None):
     original_files = {}
@@ -9,7 +11,7 @@ def check_backup(original, backup, extension=None):
     backup_files = {}
     for f in scan_directory(backup, extension):
         relative_path = f["path"][len(backup):]
-        backup_files[relative_path] = f["size"]
+        backup_files[relative_path] = get_file_hash(f["path"])
 
     print("\n Сравнение с бэкапом \n")
     for name in original_files:
