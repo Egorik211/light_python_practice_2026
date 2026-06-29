@@ -1,22 +1,48 @@
 import os
 from datetime import datetime
 
-def scan_directory(path, extension=None):
-    files = []
-    entries = os.listdir(path)
-    for entry in entries:
-        full_path = os.path.join(path, entry)
-        if os.path.isfile(full_path):
-            if extension is None or full_path.endswith(extension):
-                stat = os.stat(full_path)
-                files.append({
-                    "path": full_path,
-                    "size": stat.st_size,
-                    "modified": datetime.fromtimestamp(stat.st_mtime),
-                })
-        elif os.path.isdir(full_path):
-            files += scan_directory(full_path, extension)
-    return files
+def scan_folder(path1, skip_extensions=None):
+    if skip_extensions is None:
+        skip_extensions = set()
+
+    all_files = []
+
+    def recurse(path2):
+        try:
+            vhod = os.listdir(path2)
+        except (PermissionError, OSError):
+            return
+
+        for vh in vhod:
+            all_path = os.path.join(path2, vh)
+
+            if vh.startswith("."):
+                continue
+
+            if os.path.isdir(all_path):
+                recurse(all_path)
+            else:
+                try:
+                    _, ext = os.path.splitext(vh)
+                    if ext.lower() in skip_extensions:
+                        continue
+
+                    size = os.path.getsize(all_path)
+                    if size == 0:
+                        continue
+
+                    mtime_ts = os.path.getmtime(all_path)
+
+                    all_files.append({
+                        "path": all_path,
+                        "size": size,
+                        "modified": datetime.fromtimestamp(mtime_ts)
+                    })
+                except (PermissionError, OSError):
+                    continue
+
+    recurse(path1)
+    return all_files
 
 def format_size(size_bytes):
     for unit in ("Б", "КБ", "МБ", "ГБ"):
